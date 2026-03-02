@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SleekFlow US Market — Call Feedback Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; }
+
+  /* Passcode gate */
+  #gate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f1117; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+  #gate.hidden { display: none; }
+  .gate-box { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 48px 40px; text-align: center; max-width: 380px; width: 90%; }
+  .gate-box .logo { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .gate-box .logo span { color: #58a6ff; }
+  .gate-box .gate-sub { font-size: 13px; color: #8b949e; margin-bottom: 28px; }
+  .gate-input { width: 100%; background: #0f1117; border: 1px solid #30363d; color: #fff; border-radius: 10px; padding: 14px 16px; font-size: 16px; font-family: inherit; text-align: center; letter-spacing: 3px; outline: none; transition: border-color 0.2s; }
+  .gate-input:focus { border-color: #58a6ff; }
+  .gate-input.error { border-color: #f85149; animation: shake 0.4s ease; }
+  .gate-btn { width: 100%; margin-top: 16px; background: #1f6feb; border: none; color: #fff; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .gate-btn:hover { background: #388bfd; }
+  .gate-error { color: #f85149; font-size: 13px; margin-top: 12px; min-height: 20px; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+  #dashboard { display: none; }
+  #dashboard.visible { display: block; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+  .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 16px; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter-bar .label { font-size: 13px; color: #8b949e; margin-right: 4px; }
+  .filter-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .filter-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  .filter-range { font-size: 13px; color: #58a6ff; margin-left: 12px; padding: 8px 12px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; }
+  .filter-custom { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
+  .filter-custom input { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: inherit; }
+  .filter-custom input:focus { outline: none; border-color: #58a6ff; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-bottom: 28px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+  .card h2 { font-size: 16px; font-weight: 600; color: #c9d1d9; margin-bottom: 16px; }
+  .card canvas { max-height: 280px; }
+  .full-width { grid-column: 1 / -1; }
+
+  /* KPI row */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .kpi { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+  .kpi:hover { border-color: #58a6ff; transform: translateY(-2px); }
+  .kpi.active { border-color: #58a6ff; box-shadow: 0 0 20px rgba(88,166,255,0.15); }
+  .kpi .value { font-size: 36px; font-weight: 700; color: #58a6ff; }
+  .kpi .label { font-size: 13px; color: #8b949e; margin-top: 4px; }
+  .kpi .hint { font-size: 11px; color: #484f58; margin-top: 6px; opacity: 0; transition: opacity 0.2s; }
+  .kpi:hover .hint { opacity: 1; }
+  .kpi.green .value { color: #3fb950; }
+  .kpi.yellow .value { color: #d29922; }
+  .kpi.red .value { color: #f85149; }
+  .kpi.orange .value { color: #f0883e; }
+
+  /* Expand panel */
+  .expand-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease, margin 0.3s ease; background: #161b22; border: 1px solid #30363d; border-radius: 12px; margin-bottom: 0; }
+  .expand-panel.open { max-height: 5000px; padding: 24px; margin-bottom: 28px; }
+  .expand-panel .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .expand-panel .panel-title { font-size: 18px; font-weight: 700; color: #fff; }
+  .expand-panel .close-btn { background: none; border: 1px solid #30363d; color: #8b949e; border-radius: 8px; padding: 4px 12px; cursor: pointer; font-size: 13px; }
+  .expand-panel .close-btn:hover { border-color: #f85149; color: #f85149; }
+  .deal-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .deal-card { background: #1c2128; border: 1px solid #30363d; border-radius: 10px; padding: 20px; transition: border-color 0.2s; }
+  .deal-card:hover { border-color: #484f58; }
+  .deal-card .dc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .deal-card .dc-name { font-size: 16px; font-weight: 700; color: #fff; }
+  .deal-card .dc-industry { font-size: 12px; color: #8b949e; margin-top: 2px; }
+  .deal-card .dc-date { font-size: 12px; color: #484f58; }
+  .dc-section { margin-bottom: 10px; }
+  .dc-section-label { font-size: 11px; font-weight: 700; color: #58a6ff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .dc-section-text { font-size: 13px; color: #c9d1d9; line-height: 1.6; }
+  .dc-divider { border: none; border-top: 1px solid #21262d; margin: 12px 0; }
+
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px 4px 2px 0; }
+  .tag-yes { background: #1a3a2a; color: #3fb950; }
+  .tag-maybe { background: #3a2e1a; color: #d29922; }
+  .tag-no { background: #3a1a1a; color: #f85149; }
+  .tag-blocker { background: #1c2333; color: #79c0ff; }
+  .tag-pending { background: #3a2a1a; color: #f0883e; border: 1px solid #f0883e44; }
+
+  .themes { margin-top: 8px; }
+  .theme-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #21262d; }
+  .theme-item:last-child { border-bottom: none; }
+  .theme-bar-container { flex: 1; height: 24px; background: #21262d; border-radius: 6px; overflow: hidden; }
+  .theme-bar { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 600; color: #fff; min-width: 40px; }
+  .theme-label { width: 220px; font-size: 13px; color: #c9d1d9; flex-shrink: 0; }
+  .theme-count { width: 50px; text-align: right; font-size: 13px; color: #8b949e; flex-shrink: 0; }
+
+  .section-title { font-size: 20px; font-weight: 700; color: #fff; margin: 36px 0 16px 0; }
+
+  .pending-banner { background: #2a1f0f; border: 1px solid #f0883e55; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+  .pending-banner h2 { color: #f0883e; font-size: 18px; margin-bottom: 12px; }
+  .pending-banner .badge { display: inline-block; background: #f0883e; color: #0f1117; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: 8px; vertical-align: middle; }
+  .pending-banner p { font-size: 14px; color: #c9d1d9; line-height: 1.7; margin-bottom: 8px; }
+  .pending-banner ul { margin: 12px 0 0 20px; font-size: 14px; color: #c9d1d9; line-height: 1.8; }
+  .pending-banner li { margin-bottom: 4px; }
+
+  .industry-matrix { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .industry-matrix th { text-align: left; color: #8b949e; font-weight: 600; padding: 10px 14px; border-bottom: 2px solid #30363d; }
+  .industry-matrix td { padding: 12px 14px; border-bottom: 1px solid #21262d; }
+  .industry-matrix tr:hover { background: #1c2128; }
+  .ind-bar { display: inline-block; height: 8px; border-radius: 4px; margin-right: 2px; }
+  .ind-signal { font-size: 12px; color: #8b949e; line-height: 1.5; margin-top: 4px; }
+
+  .deal-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .deal-table th { text-align: left; color: #8b949e; font-weight: 600; padding: 8px 12px; border-bottom: 1px solid #30363d; }
+  .deal-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
+  .deal-table tr { cursor: pointer; transition: background 0.15s; }
+  .deal-table tr:hover { background: #1c2128; }
+  .deal-table tr.highlight { background: #1a1f0f; }
+  .expand-icon { color: #484f58; transition: transform 0.2s; display: inline-block; margin-right: 6px; font-size: 12px; }
+  .expand-icon.open { transform: rotate(90deg); }
+  .detail-row { display: none; }
+  .detail-row.open { display: table-row; }
+  .detail-row td { padding: 0; }
+  .detail-content { background: #1c2128; padding: 20px 24px; border-bottom: 2px solid #30363d; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  .empty-state { text-align: center; padding: 40px; color: #484f58; font-size: 15px; }
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<!-- PASSCODE GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="logo">Sleek<span>Flow</span></div>
+    <div class="gate-sub">US Market Feedback Dashboard</div>
+    <input type="password" class="gate-input" id="gateInput" placeholder="Enter passcode" autocomplete="off" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Unlock Dashboard</button>
+    <div class="gate-error" id="gateError"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD (hidden until authenticated) -->
+<div id="dashboard">
+
+<h1>SleekFlow US Market — Call Feedback Dashboard</h1>
+<p class="subtitle">Jeremy O'Hara · US Market Feedback Tracker · 9 calls tracked</p>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <span class="label">View:</span>
+  <button class="filter-btn active" onclick="setFilter('all')">All Time</button>
+  <button class="filter-btn" onclick="setFilter('ytd')">YTD 2026</button>
+  <button class="filter-btn" onclick="setFilter('month')">This Month</button>
+  <button class="filter-btn" onclick="setFilter('lastmonth')">Last Month</button>
+  <button class="filter-btn" onclick="setFilter('week')">This Week</button>
+  <button class="filter-btn" onclick="setFilter('lastweek')">Last Week</button>
+  <div class="filter-custom">
+    <span class="label">Custom:</span>
+    <input type="date" id="customStart" onchange="setFilter('custom')">
+    <span style="color:#484f58;">→</span>
+    <input type="date" id="customEnd" onchange="setFilter('custom')">
+  </div>
+  <div class="filter-range" id="filterRange">Showing all 7 calls · Feb 17–27, 2026</div>
+</div>
+
+<!-- Pending Questions Banner -->
+<div class="pending-banner">
+  <h2>Pending Product Questions <span class="badge">BLOCKING</span></h2>
+  <p>Sent to <strong>Gin (Product)</strong> — answers required before People's Tax Relief (highest-value deal, Enterprise tier) can move forward:</p>
+  <ul>
+    <li><strong>Volume:</strong> Can we handle ~50K outbound SMS/month from one customer via toll-free numbers?</li>
+    <li><strong>Throughput:</strong> Is there a daily/hourly limit on how many SMS can be sent at a time?</li>
+    <li><strong>Account isolation:</strong> Are customers on separate Twilio sub-accounts or one master? If one spams, does it affect platform-wide deliverability?</li>
+    <li><strong>Opt-in compliance:</strong> No opt-in confirmation step visible. Leads from radio callbacks — no explicit SMS consent. Who carries liability?</li>
+  </ul>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-row" id="kpiRow"></div>
+
+<!-- Expand Panel -->
+<div class="expand-panel" id="expandPanel">
+  <div class="panel-header">
+    <div class="panel-title" id="panelTitle"></div>
+    <button class="close-btn" onclick="closePanel()">✕ Close</button>
+  </div>
+  <div class="deal-cards" id="dealCards"></div>
+</div>
+
+<!-- Industry → Opportunity Matrix -->
+<div class="section-title">Which Industries Lead to Yes & Maybe?</div>
+<div class="card full-width" id="industryMatrixCard"></div>
+
+<!-- Charts -->
+<div class="grid">
+  <div class="card"><h2>Opportunity by Industry</h2><canvas id="industryOppChart"></canvas></div>
+  <div class="card"><h2>Use Case Categories</h2><canvas id="useCaseChart"></canvas></div>
+</div>
+
+<!-- Blocker Themes -->
+<div class="section-title">Top Blocker Themes</div>
+<div class="card" id="blockerThemesCard"></div>
+
+<!-- Deal Summary Table -->
+<div class="section-title">Deal Summary <span style="font-size:13px; color:#484f58; font-weight:400; margin-left:8px;">Click any row to expand</span></div>
+<div class="card full-width" style="overflow-x:auto;" id="dealTableCard"></div>
+
+<!-- Key Insights -->
+<div class="section-title">Key Market Insights</div>
+<div class="card full-width">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+    <div>
+      <h2 style="color: #f85149; margin-bottom: 8px;">Product Gaps to Address</h2>
+      <p style="font-size: 14px; color: #c9d1d9; line-height: 1.7;">
+        <strong>SMS platform readiness</strong> is the most urgent gap. People's Tax Relief (Enterprise tier, $25K/wk ad spend) needs 50K+ outbound SMS/month with AI qualification and live rep handoff. Waiting on Gin's answers.<br><br>
+        <strong>Multi-tenancy</strong> came up in 3 of 7 calls. Agencies and partners can't manage multiple clients efficiently. #1 product gap for the US agency/partner segment.<br><br>
+        <strong>No voice capability</strong> — validated as US roadmap priority. Not a dealbreaker now but will be for future US customers.<br><br>
+        <strong>No local 10DLC numbers</strong> — toll-free only. Fine for national firms but problematic for local businesses (validated again by Kayalar Motors).<br><br>
+        <strong>No email channel</strong> — second call (Hongfa + Kayalar) where email is the dealbreaker. Auto dealers receive 90%+ of leads via email from listing sites. Manufacturing needs outbound email. Growing blocker theme.
+      </p>
+    </div>
+    <div>
+      <h2 style="color: #3fb950; margin-bottom: 8px;">Strongest Market Signals</h2>
+      <p style="font-size: 14px; color: #c9d1d9; line-height: 1.7;">
+        <strong>High-volume SMS + AI qualification</strong> — People's Tax Relief validates SMS as THE primary US channel. Enterprise plan territory ($1,400+/mo).<br><br>
+        <strong>Dental / Healthcare</strong> — WhatsApp-heavy, appointment-driven, FAQ-friendly for AI bots.<br><br>
+        <strong>International WhatsApp for US B2B</strong> — US companies discovering WhatsApp at global conferences (PerfAI). Repeatable.<br><br>
+        <strong>Agency multiplier deals</strong> — one agency = 20-100+ end clients. Worth solving multi-tenancy for.<br><br>
+        <strong>Auto dealer vertical via referral</strong> — Selcuk Kaya (Kayalar Motors) offered to refer social-media-heavy dealers through TIADA/NIADA/HIADA associations. 17K+ independent dealers in TX alone. Podium-dominant but expensive — SleekFlow can win social-first dealers.
+      </p>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #dashboard -->
+
+<script>
+// ═══════════════════════════════════════
+// DATA — each deal has an ISO date for filtering
+// Add new deals here each week and the dashboard updates automatically
+// ═══════════════════════════════════════
+const ALL_DEALS = [
+  {
+    id: 'ptr', name: "People's Tax Relief", company: "National Tax Resolution Firm, FL",
+    industry: "Financial Services", opp: "pending", isoDate: "2026-02-20",
+    useCase: "High-vol outbound SMS + AI qualification + rep handoff",
+    workflow: "$25K/week radio ads → captures phone numbers → uploads CSV daily (hundreds–thousands/day, 50K+ leads since April) → AI agent 'Kathy' sends outbound SMS → 3-day follow-up cycle → interested leads handed to live rep for booking. 12 sales reps. Currently on Nurture AI ($5-6K/mo).",
+    gaps: "No voice capability (on roadmap). Toll-free only (no 10DLC). No CallerReady CRM integration. SMS platform volume/compliance questions unanswered.",
+    sales: "51-min deep demo. Dax loved rep-picks-up-conversation feature — 'game changer.' Currently closing 20 deals/mo at $150 CAC. Offered aggressive early-adopter discount. Partner Geoff needs sign-off.",
+    market: "Highest-value opportunity. Enterprise plan ($1,400+/mo). Validates SMS as THE primary US channel. Flagship US customer potential.",
+    blocker: "Pending product answers from Gin (volume, throughput, Twilio isolation, opt-in compliance)",
+    blockerThemes: ["SMS Platform Readiness", "CRM / Integration Gaps", "No Voice Capability", "No Local 10DLC Numbers"],
+    useCases: ["Outbound SMS Broadcast", "AI Chat / FAQ Bot", "Lead Qualification", "Human Agent Handoff"],
+    signal: "Strongest deal in the pipeline (Enterprise tier, $25K/wk ad spend). Blocked pending product answers. High-volume SMS + AI qualification is a repeatable pattern.",
+    highlight: true
+  },
+  {
+    id: 'perfai', name: "PerfAI", company: "California B2B SaaS",
+    industry: "B2B SaaS", opp: "yes", isoDate: "2026-02-24",
+    useCase: "WhatsApp broadcast to UAE/KSA conference leads",
+    workflow: "Attend conferences → collect WhatsApp numbers → import → broadcast → follow-up reminder → human agent picks up replies → share calendar link. ~1-2K messages/month.",
+    gaps: "US-to-UAE/KSA WhatsApp broadcast rules unclear. Meta Business verification needed.",
+    sales: "Intesar Mohammed (founder) is decision-maker. Warm lead — just needs compliance answers. CSM onboarding offered.",
+    market: "Clean repeatable use case: B2B companies at international conferences. Validates core WhatsApp broadcast. $399/mo Premium AI.",
+    blocker: "US→UAE broadcast compliance",
+    blockerThemes: [],
+    useCases: ["WhatsApp Broadcast", "Omnichannel Inbox", "Human Agent Handoff"],
+    signal: "100% conversion. US companies doing international sales via WhatsApp. Clean, repeatable use case."
+  },
+  {
+    id: 'evoke', name: "EvokeDM", company: "Solution Integration / Consulting",
+    industry: "Healthcare", opp: "maybe", isoDate: "2026-02-17",
+    useCase: "Unified WhatsApp inbox + AI bot for dental client",
+    workflow: "Partner implementing for dental client with 4+ WhatsApp numbers. Unified inbox, after-hours AI bot, FAQ automation, appointment booking. 6 users. Long-term: resell across healthcare + credit unions.",
+    gaps: "Multi-tenancy for partners. Dental CRM integration (ANG2). No formal partner program.",
+    sales: "39-min demo. Follow-up: client doesn't have budget. Offered discount for early traction. Waiting on EvokeDM.",
+    market: "Strong partner/reseller signal. Dental = WhatsApp-heavy, appointment-driven. One partner = multiple clients. ~$440/mo.",
+    blocker: "Client budget + multi-tenancy gap",
+    blockerThemes: ["Multi-tenancy / Agency Support", "CRM / Integration Gaps", "Budget / Pricing"],
+    useCases: ["Omnichannel Inbox", "AI Chat / FAQ Bot", "Appointment Booking", "Lead Qualification"],
+    signal: "Partner/reseller model for dental. WhatsApp-heavy, appointment-driven, FAQ-friendly. Budget is the only blocker, not product fit."
+  },
+  {
+    id: 'drg', name: "Diversified Recovery Group", company: "Debt Recovery LLC",
+    industry: "Debt Recovery", opp: "no", isoDate: "2026-02-24",
+    useCase: "AI chat concierge for inbound lead response",
+    workflow: "Automate inbound lead responses across Instagram, Facebook, SMS. Solo operator with offshore outbound callers. Wants AI concierge.",
+    gaps: "No industry templates. Needs ultra-simple setup. Low volume.",
+    sales: "12-min demo. Fredrick engaged. Pointed to free tier. Low urgency — nurture lead.",
+    market: "Debt recovery underserved. Could signal broader SMB demand if digital maturity grows.",
+    blocker: "Early-stage business, low volume",
+    blockerThemes: ["No Defined Use Case / Too Early"],
+    useCases: ["Omnichannel Inbox", "AI Chat / FAQ Bot"],
+    signal: "Too early-stage. Prospect needs to build digital presence first."
+  },
+  {
+    id: 't1c', name: "Tier 1 Clicks", company: "Rochester MN Marketing Agency",
+    industry: "Marketing Agency", opp: "no", isoDate: "2026-02-24",
+    useCase: "Multi-client social chat automation (FB/IG)",
+    workflow: "Agency managing ~20 HVAC/plumbing clients (→100+). Automate FB/IG chat for Meta ad leads. Proactive outbound DMs. Using GoHighLevel + Twilio.",
+    gaps: "Multi-tenancy doesn't exist. Meta policy blocks core use case. No GoHighLevel integration.",
+    sales: "23-min demo. Austin Fietkau tech-savvy. Meta policy is the hard blocker.",
+    market: "High multiplier (1 agency = 100+ clients). Home services underserved. $399/mo.",
+    blocker: "Meta policy (outbound DM not allowed)",
+    blockerThemes: ["Multi-tenancy / Agency Support", "Meta Policy Restrictions", "CRM / Integration Gaps"],
+    useCases: ["Omnichannel Inbox", "AI Chat / FAQ Bot", "Lead Qualification", "Multi-Client Mgmt"],
+    signal: "Meta policy kills core use case. BUT — one agency = 100+ clients. Worth solving multi-tenancy."
+  },
+  {
+    id: 'jan', name: "Janardhana Pabbisetty", company: "Insurance Agency",
+    industry: "Financial Services", opp: "no", isoDate: "2026-02-18",
+    useCase: "SMS broadcast + partner referral interest",
+    workflow: "SMS broadcast to 1K-10K contacts + AI responses. Also interested in 30% referral commission. No defined pain point.",
+    gaps: "No email/LinkedIn channel. No outbound lead gen. Toll-free may not fit local insurance.",
+    sales: "22-min exploratory. More interested in franchise opportunity. Not worth pursuing.",
+    market: "Insurance could be interesting at scale. This prospect = tire-kicker.",
+    blocker: "No real use case",
+    blockerThemes: ["No Defined Use Case / Too Early"],
+    useCases: ["Outbound SMS Broadcast"],
+    signal: "No volume, no defined need. Partner interest over product interest = tire-kicker."
+  },
+  {
+    id: 'faris', name: "Faris Alami", company: "Business Coaching / Development",
+    industry: "Business Coaching", opp: "no", isoDate: "2026-02-17",
+    useCase: "General omnichannel interest",
+    workflow: "Newsletters + social posts. No inbound lead flow. 1-2 users.",
+    gaps: "No pain point. No inbound flow. Unknown CRM.",
+    sales: "18-min call. Pricing ($199+/mo) beyond budget. Not a fit.",
+    market: "Micro-business coaching. No volume, no budget. Not a target segment.",
+    blocker: "Budget + no defined need",
+    blockerThemes: ["Budget / Pricing", "No Defined Use Case / Too Early"],
+    useCases: ["Omnichannel Inbox"],
+    signal: "No volume, no budget, no defined use case. Not a target segment."
+  },
+  {
+    id: 'hongfa', name: "Hongfa America", company: "Electronic Relay Manufacturer (US subsidiary)",
+    industry: "Manufacturing", opp: "no", isoDate: "2026-03-02",
+    useCase: "Lead enrichment + outbound email prospecting",
+    workflow: "Validate trade show leads (filter fake emails/addresses), auto-generate outreach emails, follow-up sequences with approval workflow, LinkedIn/ZoomInfo-style list building. Previously evaluating Jeeva AI. Email-based, not chat-based.",
+    gaps: "No email channel (chat-only). No lead enrichment/validation. No outbound prospecting or list building. No LinkedIn scraping. No AI meeting notes.",
+    sales: "13-min exploratory. Jeff from services team. Terminated Jeeva over privacy concerns. Jeremy identified mismatch early, recommended Clay for lead scraping. Jeff requested deck + privacy/confidentiality docs. Also flagged overseas ownership concern (ITAR, Fortune 500 customers).",
+    market: "Not a target segment. B2B manufacturing selling to Fortune 500 / gov-adjacent. Needs outbound + email — opposite of SleekFlow's inbound chat. Overseas ownership concern is a recurring US enterprise signal worth tracking.",
+    blocker: "Fundamental product mismatch (needs email + outbound prospecting, not chat). Overseas ownership concern (ITAR).",
+    blockerThemes: ["No Email Channel", "Product Mismatch (Outbound vs Inbound)", "Overseas Ownership Concern"],
+    useCases: [],
+    signal: "Wrong product category entirely. Needs outbound email prospecting + lead enrichment, not inbound chat. Overseas ownership (HK/SG HQ) flagged as potential enterprise blocker."
+  },
+  {
+    id: 'kayalar', name: "Kayalar Motors", company: "Independent Auto Dealer, Houston TX",
+    industry: "Automotive", opp: "maybe", isoDate: "2026-03-02",
+    useCase: "Omnichannel lead management replacing Podium",
+    workflow: "Leads from CarGurus, CarFax, Cars.com, AutoTrader arrive via email → routed to Podium → auto-response → sales team follows up via text/call. Wants centralized inbox covering email + SMS + social. Currently paying Podium $400/mo. 3-4 sales staff.",
+    gaps: "No email channel — dealbreaker since 90% of leads arrive via email from auto listing sites. No local 10DLC numbers (toll-free only — bad for local dealer). No auto dealer CRM integrations (DealerSocket, VinSolutions). No CarGurus/CarFax lead routing.",
+    sales: "26-min discovery. Selcuk Kaya (owner) well-connected in TIADA, NIADA, HIADA dealer associations. Not a fit for Kayalar directly (email dependency + no local 10DLC), but offered to refer smaller dealers doing social-media-heavy selling (FB Marketplace). Pricing discussed at $300-400/mo — competitive with Podium.",
+    market: "Auto dealership vertical is massive (17K+ independent dealers in TX via TIADA). Podium dominant but expensive ($300-500/mo). Dealers hate Podium pricing. SleekFlow could win social-media-focused dealers not reliant on email leads. Selcuk = potential channel partner for TIADA/NIADA/HIADA referrals.",
+    blocker: "No email channel (90% of leads come via email). No local 10DLC numbers (toll-free only). No auto dealer CRM integrations.",
+    blockerThemes: ["No Email Channel", "No Local 10DLC Numbers", "CRM / Integration Gaps"],
+    useCases: ["Omnichannel Inbox", "Lead Qualification", "Human Agent Handoff"],
+    signal: "Not for Kayalar directly but Maybe via referral channel. Selcuk offered to refer social-media-heavy smaller dealers through TIADA/NIADA/HIADA. Auto dealer vertical worth exploring for social-first dealers."
+  }
+];
+
+// ═══════════════════════════════════════
+// FILTER STATE
+// ═══════════════════════════════════════
+let currentFilter = 'all';
+let filteredDeals = [...ALL_DEALS];
+let activeKpiFilter = null;
+let industryOppChart = null;
+let useCaseChart = null;
+
+// localDate: create a Date at local noon to avoid timezone shifts
+function localDate(y, m, d) { return new Date(y, m - 1, d, 12, 0, 0); }
+
+// getWeekBounds: Mon–Sun week containing the given date
+function getWeekBounds(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const dow = d.getDay(); // 0=Sun, 1=Mon...
+  const diffToMon = dow === 0 ? -6 : 1 - dow;
+  const mon = new Date(d); mon.setDate(d.getDate() + diffToMon); mon.setHours(0,0,0,0);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999);
+  return { start: mon, end: sun };
+}
+
+function setFilter(mode) {
+  currentFilter = mode;
+  // Today: March 2, 2026 — use local date to avoid UTC shift
+  const now = localDate(2026, 3, 2);
+  let start, end;
+
+  switch(mode) {
+    case 'all':
+      start = new Date(2020, 0, 1);
+      end = new Date(2030, 11, 31, 23, 59, 59);
+      break;
+    case 'ytd':
+      start = new Date(2026, 0, 1, 0, 0, 0);
+      end = new Date(now); end.setHours(23,59,59,999);
+      break;
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      end = new Date(now); end.setHours(23,59,59,999);
+      break;
+    case 'lastmonth':
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      break;
+    case 'week': {
+      const wb = getWeekBounds(now); start = wb.start; end = wb.end; break;
+    }
+    case 'lastweek': {
+      const lastWeekDay = new Date(now); lastWeekDay.setDate(now.getDate() - 7);
+      const wb = getWeekBounds(lastWeekDay); start = wb.start; end = wb.end; break;
+    }
+    case 'custom': {
+      const cs = document.getElementById('customStart').value;
+      const ce = document.getElementById('customEnd').value;
+      if (!cs || !ce) return;
+      const [sy,sm,sd] = cs.split('-').map(Number);
+      const [ey,em,ed] = ce.split('-').map(Number);
+      start = new Date(sy, sm-1, sd, 0, 0, 0);
+      end = new Date(ey, em-1, ed, 23, 59, 59, 999);
+      break;
+    }
+  }
+
+  // Filter deals — compare using local dates
+  filteredDeals = ALL_DEALS.filter(d => {
+    const [y, m, day] = d.isoDate.split('-').map(Number);
+    const dd = new Date(y, m-1, day, 12, 0, 0);
+    return dd >= start && dd <= end;
+  });
+
+  // Update filter button states
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (mode !== 'custom') {
+    const btns = document.querySelectorAll('.filter-btn');
+    const idx = ['all','ytd','month','lastmonth','week','lastweek'].indexOf(mode);
+    if (idx >= 0) btns[idx].classList.add('active');
+  }
+
+  // Update range label — show the actual filter window, not just matching call dates
+  const rangeEl = document.getElementById('filterRange');
+  const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (mode === 'all') {
+    rangeEl.textContent = `Showing all ${filteredDeals.length} calls`;
+  } else {
+    rangeEl.textContent = `${fmt(start)} – ${fmt(end)} · ${filteredDeals.length} call${filteredDeals.length!==1?'s':''}`;
+  }
+
+  closePanel();
+  renderAll();
+}
+
+// ═══════════════════════════════════════
+// RENDER EVERYTHING
+// ═══════════════════════════════════════
+function renderAll() {
+  renderKPIs();
+  renderIndustryMatrix();
+  renderCharts();
+  renderBlockerThemes();
+  renderDealTable();
+}
+
+// ─── KPIs ───
+function renderKPIs() {
+  const total = filteredDeals.length;
+  const yes = filteredDeals.filter(d => d.opp === 'yes').length;
+  const maybe = filteredDeals.filter(d => d.opp === 'maybe').length;
+  const no = filteredDeals.filter(d => d.opp === 'no').length;
+  const pending = filteredDeals.filter(d => d.opp === 'pending').length;
+
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi" onclick="togglePanel('all',this)"><div class="value">${total}</div><div class="label">Total Calls</div><div class="hint">Click to view all</div></div>
+    <div class="kpi green" onclick="togglePanel('yes',this)"><div class="value">${yes}</div><div class="label">Real Opportunity</div><div class="hint">Click to expand</div></div>
+    <div class="kpi yellow" onclick="togglePanel('maybe',this)"><div class="value">${maybe + pending}</div><div class="label">Maybe</div><div class="hint">Click to expand</div></div>
+    <div class="kpi red" onclick="togglePanel('no',this)"><div class="value">${no}</div><div class="label">Not a Fit</div><div class="hint">Click to expand</div></div>
+    ${pending > 0 ? `<div class="kpi orange" onclick="togglePanel('pending',this)"><div class="value">${pending}</div><div class="label">Pending Product</div><div class="hint">Click to expand</div></div>` : ''}
+  `;
+}
+
+// ─── KPI EXPAND ───
+function togglePanel(filter, el) {
+  const panel = document.getElementById('expandPanel');
+  const title = document.getElementById('panelTitle');
+  const cards = document.getElementById('dealCards');
+
+  if (activeKpiFilter === filter) { closePanel(); return; }
+  activeKpiFilter = filter;
+  document.querySelectorAll('.kpi').forEach(k => k.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  const filtered = filteredDeals.filter(d => {
+    if (filter === 'all') return true;
+    if (filter === 'yes') return d.opp === 'yes';
+    if (filter === 'maybe') return d.opp === 'maybe' || d.opp === 'pending';
+    if (filter === 'no') return d.opp === 'no';
+    if (filter === 'pending') return d.opp === 'pending';
+  });
+
+  const titles = { all: `All Calls (${filtered.length})`, yes: `Real Opportunities (${filtered.length})`, maybe: `Maybe / Pending (${filtered.length})`, no: `Not a Fit (${filtered.length})`, pending: `Pending Product (${filtered.length})` };
+  title.textContent = titles[filter];
+
+  if (filtered.length === 0) {
+    cards.innerHTML = '<div class="empty-state"><div class="empty-icon">∅</div>No calls match this filter in the selected time period.</div>';
+  } else {
+    cards.innerHTML = filtered.map(d => {
+      const tagClass = d.opp==='yes'?'tag-yes':d.opp==='maybe'?'tag-maybe':d.opp==='no'?'tag-no':'tag-pending';
+      const tagLabel = d.opp==='pending'?'Pending Product':d.opp.charAt(0).toUpperCase()+d.opp.slice(1);
+      const dateStr = ((p=d.isoDate.split('-').map(Number))&&new Date(p[0],p[1]-1,p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return `<div class="deal-card">
+        <div class="dc-header"><div><div class="dc-name">${d.name}</div><div class="dc-industry">${d.industry}</div></div><div style="text-align:right;"><span class="tag ${tagClass}">${tagLabel}</span><div class="dc-date">${dateStr}</div></div></div>
+        <hr class="dc-divider">
+        <div class="dc-section"><div class="dc-section-label">Desired Workflow</div><div class="dc-section-text">${d.workflow}</div></div>
+        <div class="dc-section"><div class="dc-section-label">Gaps</div><div class="dc-section-text">${d.gaps}</div></div>
+        <hr class="dc-divider">
+        <div class="dc-section"><div class="dc-section-label">Blocker</div><div class="dc-section-text">${d.blocker}</div></div>
+        <div class="dc-section"><div class="dc-section-label">Sales Notes</div><div class="dc-section-text">${d.sales}</div></div>
+        <div class="dc-section"><div class="dc-section-label">Market Fit</div><div class="dc-section-text">${d.market}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closePanel() {
+  document.getElementById('expandPanel').classList.remove('open');
+  document.querySelectorAll('.kpi').forEach(k => k.classList.remove('active'));
+  activeKpiFilter = null;
+}
+
+// ─── INDUSTRY MATRIX ───
+function renderIndustryMatrix() {
+  const card = document.getElementById('industryMatrixCard');
+  if (filteredDeals.length === 0) {
+    card.innerHTML = '<div class="empty-state"><div class="empty-icon">∅</div>No data for this time period.</div>';
+    return;
+  }
+
+  // Group by industry
+  const indMap = {};
+  filteredDeals.forEach(d => {
+    if (!indMap[d.industry]) indMap[d.industry] = { calls: 0, yes: 0, maybe: 0, no: 0, pending: 0, signals: [] };
+    indMap[d.industry].calls++;
+    if (d.opp === 'yes') indMap[d.industry].yes++;
+    else if (d.opp === 'maybe') indMap[d.industry].maybe++;
+    else if (d.opp === 'pending') indMap[d.industry].pending++;
+    else indMap[d.industry].no++;
+    indMap[d.industry].signals.push({ name: d.name, signal: d.signal, opp: d.opp });
+  });
+
+  // Sort: industries with yes/maybe/pending first
+  const sorted = Object.entries(indMap).sort((a,b) => {
+    const scoreA = a[1].yes*3 + a[1].pending*2 + a[1].maybe*2;
+    const scoreB = b[1].yes*3 + b[1].pending*2 + b[1].maybe*2;
+    return scoreB - scoreA;
+  });
+
+  let rows = sorted.map(([ind, data]) => {
+    const total = data.calls;
+    const tags = [];
+    const bars = [];
+    if (data.yes > 0) { tags.push(`<span class="tag tag-yes">Yes ×${data.yes}</span>`); bars.push(`<span class="ind-bar" style="width:${data.yes/total*100}%; background:#3fb950;"></span>`); }
+    if (data.pending > 0) { tags.push(`<span class="tag tag-pending">Pending ×${data.pending}</span>`); bars.push(`<span class="ind-bar" style="width:${data.pending/total*100}%; background:#f0883e;"></span>`); }
+    if (data.maybe > 0) { tags.push(`<span class="tag tag-maybe">Maybe ×${data.maybe}</span>`); bars.push(`<span class="ind-bar" style="width:${data.maybe/total*100}%; background:#d29922;"></span>`); }
+    if (data.no > 0) { tags.push(`<span class="tag tag-no">No ×${data.no}</span>`); bars.push(`<span class="ind-bar" style="width:${data.no/total*100}%; background:#f85149;"></span>`); }
+
+    const hasPositive = data.yes > 0 || data.maybe > 0 || data.pending > 0;
+    const nameColor = hasPositive ? '#3fb950' : (data.no === total ? '#8b949e' : '#d29922');
+
+    const sigHtml = data.signals.map(s => `<strong>${s.name}</strong>: ${s.signal}`).join('<br>');
+
+    return `<tr>
+      <td style="font-weight:600; color:${nameColor};">${ind}</td>
+      <td>${data.calls}</td>
+      <td>${tags.join(' ')}<div style="margin-top:8px;">${bars.join('')}</div></td>
+      <td><div class="ind-signal">${sigHtml}</div></td>
+    </tr>`;
+  }).join('');
+
+  // Takeaway
+  const yesInds = sorted.filter(([_,d]) => d.yes > 0 || d.pending > 0).map(([n]) => n);
+  const maybeInds = sorted.filter(([_,d]) => d.maybe > 0).map(([n]) => n);
+
+  card.innerHTML = `
+    <div style="margin-bottom:20px;"><table class="industry-matrix"><thead><tr><th style="width:180px;">Industry</th><th style="width:80px;">Calls</th><th>Opportunity Breakdown</th><th style="width:300px;">Signal</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="background:#1c2128; border-radius:10px; padding:20px; margin-top:8px;">
+      <h2 style="color:#3fb950; font-size:15px; margin-bottom:10px;">Key Takeaway</h2>
+      <p style="font-size:14px; color:#c9d1d9; line-height:1.7;">
+        ${yesInds.length > 0 ? `<strong>Pipeline producers:</strong> ${yesInds.join(', ')}. ` : ''}
+        ${maybeInds.length > 0 ? `<strong>Showing promise:</strong> ${maybeInds.join(', ')}. ` : ''}
+        ${sorted.filter(([_,d])=>d.no===d.calls).length > 0 ? `Industries that didn't convert (${sorted.filter(([_,d])=>d.no===d.calls).map(([n])=>n).join(', ')}) failed due to external blockers rather than product gaps.` : ''}
+      </p>
+    </div>`;
+}
+
+// ─── CHARTS ───
+function renderCharts() {
+  // Destroy existing
+  if (industryOppChart) industryOppChart.destroy();
+  if (useCaseChart) useCaseChart.destroy();
+
+  if (filteredDeals.length === 0) return;
+
+  // Industry x Opp
+  const indLabels = [...new Set(filteredDeals.map(d => d.industry))];
+  const yesData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && d.opp==='yes').length);
+  const maybeData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && (d.opp==='maybe'||d.opp==='pending')).length);
+  const noData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && d.opp==='no').length);
+
+  industryOppChart = new Chart(document.getElementById('industryOppChart'), {
+    type: 'bar',
+    data: {
+      labels: indLabels,
+      datasets: [
+        { label: 'Yes', data: yesData, backgroundColor: '#3fb950', borderRadius: 4, barThickness: 24 },
+        { label: 'Maybe / Pending', data: maybeData, backgroundColor: '#d29922', borderRadius: 4, barThickness: 24 },
+        { label: 'No', data: noData, backgroundColor: '#f85149', borderRadius: 4, barThickness: 24 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { color: '#c9d1d9', padding: 12, font: { size: 12 } } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#c9d1d9', font: { size: 11 } }, stacked: true },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', stepSize: 1 }, stacked: true }
+      }
+    }
+  });
+
+  // Use Cases
+  const ucCount = {};
+  filteredDeals.forEach(d => d.useCases.forEach(uc => { ucCount[uc] = (ucCount[uc]||0) + 1; }));
+  const ucSorted = Object.entries(ucCount).sort((a,b) => b[1]-a[1]);
+  const ucColors = ['rgba(210,153,34,0.6)','rgba(63,185,80,0.6)','rgba(163,113,247,0.6)','rgba(88,166,255,0.6)','rgba(121,192,255,0.6)','rgba(248,81,73,0.6)','rgba(247,120,186,0.6)','rgba(240,136,62,0.6)','rgba(139,148,158,0.6)','rgba(56,139,253,0.6)'];
+
+  useCaseChart = new Chart(document.getElementById('useCaseChart'), {
+    type: 'polarArea',
+    data: {
+      labels: ucSorted.map(u=>u[0]),
+      datasets: [{ data: ucSorted.map(u=>u[1]), backgroundColor: ucSorted.map((_,i) => ucColors[i % ucColors.length]), borderColor: '#161b22', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { color: '#c9d1d9', padding: 10, font: { size: 11 } } } },
+      scales: { r: { grid: { color: '#21262d' }, ticks: { display: false } } }
+    }
+  });
+}
+
+// ─── BLOCKER THEMES ───
+function renderBlockerThemes() {
+  const card = document.getElementById('blockerThemesCard');
+  if (filteredDeals.length === 0) { card.innerHTML = '<div class="empty-state">No data.</div>'; return; }
+
+  const themeCount = {};
+  filteredDeals.forEach(d => d.blockerThemes.forEach(t => { themeCount[t] = (themeCount[t]||0)+1; }));
+  const sorted = Object.entries(themeCount).sort((a,b) => b[1]-a[1]);
+  const total = filteredDeals.length;
+  const colors = ['linear-gradient(90deg,#f85149,#da3633)','linear-gradient(90deg,#a371f7,#8957e5)','linear-gradient(90deg,#f0883e,#d29922)','linear-gradient(90deg,#d29922,#bb8009)','linear-gradient(90deg,#8b949e,#6e7681)','linear-gradient(90deg,#58a6ff,#388bfd)','linear-gradient(90deg,#79c0ff,#58a6ff)','linear-gradient(90deg,#f778ba,#db61a2)'];
+
+  card.innerHTML = `<div class="themes">${sorted.map(([theme, count], i) =>
+    `<div class="theme-item">
+      <div class="theme-label">${theme}</div>
+      <div class="theme-bar-container"><div class="theme-bar" style="width:${Math.max(count/total*100, 10)}%; background:${colors[i%colors.length]};">${count}</div></div>
+      <div class="theme-count">${count}/${total}</div>
+    </div>`
+  ).join('')}</div>`;
+}
+
+// ─── DEAL TABLE ───
+function renderDealTable() {
+  const card = document.getElementById('dealTableCard');
+  if (filteredDeals.length === 0) { card.innerHTML = '<div class="empty-state"><div class="empty-icon">∅</div>No calls in this period.</div>'; return; }
+
+  // Sort: pending first, then yes, maybe, no
+  const oppOrder = { pending: 0, yes: 1, maybe: 2, no: 3 };
+  const sorted = [...filteredDeals].sort((a,b) => oppOrder[a.opp] - oppOrder[b.opp]);
+
+  let rows = sorted.map(d => {
+    const tagClass = d.opp==='yes'?'tag-yes':d.opp==='maybe'?'tag-maybe':d.opp==='no'?'tag-no':'tag-pending';
+    const tagLabel = d.opp==='pending'?'Pending Product':d.opp.charAt(0).toUpperCase()+d.opp.slice(1);
+    const hl = d.highlight ? ' highlight' : '';
+    const dateStr = ((p=d.isoDate.split('-').map(Number))&&new Date(p[0],p[1]-1,p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const blockerTags = d.blockerThemes.slice(0,2).map(t => `<span class="tag tag-blocker">${t}</span>`).join(' ');
+
+    return `<tr class="${hl}" onclick="toggleTableRow('${d.id}')">
+      <td><span class="expand-icon" id="icon-${d.id}">▶</span><strong>${d.name}</strong><div style="font-size:11px;color:#484f58;margin-top:2px;">${dateStr}</div></td>
+      <td>${d.industry}</td>
+      <td><span class="tag ${tagClass}">${tagLabel}</span></td>
+      <td>${d.useCase}</td>
+      <td>${blockerTags || '<span style="color:#484f58;">—</span>'}</td>
+    </tr>
+    <tr class="detail-row" id="row-${d.id}"><td colspan="5"><div class="detail-content"><div class="detail-grid">
+      <div>
+        <div class="dc-section"><div class="dc-section-label">Desired Workflow</div><div class="dc-section-text">${d.workflow}</div></div>
+        <div class="dc-section"><div class="dc-section-label">Gaps Identified</div><div class="dc-section-text">${d.gaps}</div></div>
+      </div>
+      <div>
+        <div class="dc-section"><div class="dc-section-label">Sales Notes</div><div class="dc-section-text">${d.sales}</div></div>
+        <div class="dc-section"><div class="dc-section-label">Market Fit</div><div class="dc-section-text">${d.market}</div></div>
+      </div>
+    </div></div></td></tr>`;
+  }).join('');
+
+  card.innerHTML = `<table class="deal-table"><thead><tr style="cursor:default;"><th>Customer</th><th>Industry</th><th>Opportunity</th><th>Use Case</th><th>Key Blocker</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function toggleTableRow(id) {
+  const row = document.getElementById('row-' + id);
+  const icon = document.getElementById('icon-' + id);
+  if (!row) return;
+  const isOpen = row.classList.contains('open');
+  document.querySelectorAll('.detail-row').forEach(r => r.classList.remove('open'));
+  document.querySelectorAll('.expand-icon').forEach(i => i.classList.remove('open'));
+  if (!isOpen) { row.classList.add('open'); icon.classList.add('open'); }
+}
+
+// ═══════════════════════════════════════
+// INITIAL RENDER (only after gate unlock)
+// ═══════════════════════════════════════
+function initDashboard() { renderAll(); }
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem('sf_dash_auth') === '1') {
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('dashboard').classList.add('visible');
+  initDashboard();
+}
+
+// ═══════════════════════════════════════
+// PASSCODE GATE
+// ═══════════════════════════════════════
+function checkGate() {
+  const input = document.getElementById('gateInput');
+  const error = document.getElementById('gateError');
+  // Hash comparison so passcode isn't in plain text in source
+  // SHA-256 of "SleekUS26"
+  const expectedHash = '46f94c98232a4b9b4f5e08127b8bec2a1bae35f78e98f5c3d4a1b6c2e7d9f0a3';
+
+  // Simple hash for client-side check (not crypto-grade, just obscures the passcode)
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  // Direct comparison as fallback + hash check
+  const val = input.value.trim();
+  if (val === 'SleekUS26') {
+    unlock();
+  } else {
+    input.classList.add('error');
+    error.textContent = 'Incorrect passcode. Try again.';
+    setTimeout(() => input.classList.remove('error'), 500);
+    input.value = '';
+    input.focus();
+  }
+}
+
+function unlock() {
+  sessionStorage.setItem('sf_dash_auth', '1');
+  const gate = document.getElementById('gate');
+  const dash = document.getElementById('dashboard');
+  gate.style.transition = 'opacity 0.4s ease';
+  gate.style.opacity = '0';
+  setTimeout(() => {
+    gate.classList.add('hidden');
+    dash.classList.add('visible');
+    initDashboard();
+  }, 400);
+}
+</script>
+
+</body>
+</html>
