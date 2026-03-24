@@ -80,6 +80,8 @@
 
   .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px 4px 2px 0; }
   .tag-yes { background: #1a3a2a; color: #3fb950; }
+  .tag-won { background: #0d2818; color: #2ea043; border: 1px solid #2ea04366; }
+  .tag-partner { background: #1c1633; color: #a78bfa; border: 1px solid #a78bfa44; }
   .tag-maybe { background: #3a2e1a; color: #d29922; }
   .tag-no { background: #3a1a1a; color: #f85149; }
   .tag-blocker { background: #1c2333; color: #79c0ff; }
@@ -145,7 +147,7 @@
 <div id="dashboard">
 
 <h1>SleekFlow US Market — Call Feedback Dashboard</h1>
-<p class="subtitle">Jeremy O'Hara · US Market Feedback Tracker · 9 calls tracked</p>
+<p class="subtitle">Jeremy O'Hara · US Market Feedback Tracker · 17 calls tracked</p>
 
 <!-- Filter Bar -->
 <div class="filter-bar">
@@ -163,18 +165,6 @@
     <input type="date" id="customEnd" onchange="setFilter('custom')">
   </div>
   <div class="filter-range" id="filterRange">Showing all 7 calls · Feb 17–27, 2026</div>
-</div>
-
-<!-- Pending Questions Banner -->
-<div class="pending-banner">
-  <h2>Pending Product Questions <span class="badge">BLOCKING</span></h2>
-  <p>Sent to <strong>Gin (Product)</strong> — answers required before People's Tax Relief (highest-value deal, Enterprise tier) can move forward:</p>
-  <ul>
-    <li><strong>Volume:</strong> Can we handle ~50K outbound SMS/month from one customer via toll-free numbers?</li>
-    <li><strong>Throughput:</strong> Is there a daily/hourly limit on how many SMS can be sent at a time?</li>
-    <li><strong>Account isolation:</strong> Are customers on separate Twilio sub-accounts or one master? If one spams, does it affect platform-wide deliverability?</li>
-    <li><strong>Opt-in compliance:</strong> No opt-in confirmation step visible. Leads from radio callbacks — no explicit SMS consent. Who carries liability?</li>
-  </ul>
 </div>
 
 <!-- KPI Row -->
@@ -214,21 +204,28 @@
     <div>
       <h2 style="color: #f85149; margin-bottom: 8px;">Product Gaps to Address</h2>
       <p style="font-size: 14px; color: #c9d1d9; line-height: 1.7;">
-        <strong>SMS platform readiness</strong> is the most urgent gap. People's Tax Relief (Enterprise tier, $25K/wk ad spend) needs 50K+ outbound SMS/month with AI qualification and live rep handoff. Waiting on Gin's answers.<br><br>
+        <strong>SMS at scale</strong> — High-volume outbound SMS (50K+/month) with AI qualification and live rep handoff is a validated US use case. Platform needs to prove it can handle this volume reliably. No voice capability is an additional trade-off for SMS-heavy prospects.<br><br>
         <strong>Multi-tenancy</strong> came up in 3 of 7 calls. Agencies and partners can't manage multiple clients efficiently. #1 product gap for the US agency/partner segment.<br><br>
         <strong>No voice capability</strong> — validated as US roadmap priority. Not a dealbreaker now but will be for future US customers.<br><br>
         <strong>No local 10DLC numbers</strong> — toll-free only. Fine for national firms but problematic for local businesses (validated again by Kayalar Motors).<br><br>
-        <strong>No email channel</strong> — second call (Hongfa + Kayalar) where email is the dealbreaker. Auto dealers receive 90%+ of leads via email from listing sites. Manufacturing needs outbound email. Growing blocker theme.
+        <strong>No email channel</strong> — second call (Hongfa + Kayalar) where email is the dealbreaker. Auto dealers receive 90%+ of leads via email from listing sites. Manufacturing needs outbound email. Growing blocker theme (not critical for STANBERT — WhatsApp-first).<br><br>
+        <strong>Toll-free / number porting ambiguity</strong> — STANBERT wants same toll-free number for both WhatsApp and SMS. Can't confirm this works in SleekFlow today. Number portability and shared registration need clear documentation.<br><br>
+        <strong>Salesforce conversation history sync</strong> — Full WhatsApp conversation history doesn't sync natively to Salesforce. Native integration handles contacts/leads/opps but NOT conversation content. Workaround exists (Zapier link or API), but this will be a recurring ask from Salesforce-heavy prospects.<br><br>
+        <strong>US WhatsApp marketing broadcast uncertainty</strong> — Meta restricts marketing templates for US numbers. US prospects want outbound WhatsApp marketing but regulatory clarity is needed. This limits use cases like lead nurture and re-engagement campaigns for mainland US numbers.<br><br>
+        <strong>Vertical-specific SaaS integrations</strong> — Prospects in healthcare, dental, auto, and other verticals expect integration with their industry-specific software (e.g. Dentrix, DealerSocket). These are niche but recurring asks that could unlock entire verticals if supported.
       </p>
     </div>
     <div>
       <h2 style="color: #3fb950; margin-bottom: 8px;">Strongest Market Signals</h2>
       <p style="font-size: 14px; color: #c9d1d9; line-height: 1.7;">
-        <strong>High-volume SMS + AI qualification</strong> — People's Tax Relief validates SMS as THE primary US channel. Enterprise plan territory ($1,400+/mo).<br><br>
-        <strong>Dental / Healthcare</strong> — WhatsApp-heavy, appointment-driven, FAQ-friendly for AI bots.<br><br>
+        <strong>High-volume SMS + AI qualification</strong> — People's Tax Relief validates SMS as THE primary US channel. POC needed to confirm capabilities at scale.<br><br>
+        <strong>Dental / Healthcare in US territories & Caribbean</strong> — WhatsApp-heavy, appointment-driven, FAQ-friendly for AI bots. SmilesInc (Bermuda) and EvokeDM both validate the dental vertical. Caribbean and US territory markets use WhatsApp as the default channel — broadcast restrictions don't apply like they do for mainland US numbers. Dentrix integration could unlock the dental vertical further if API is available.<br><br>
         <strong>International WhatsApp for US B2B</strong> — US companies discovering WhatsApp at global conferences (PerfAI). Repeatable.<br><br>
         <strong>Agency multiplier deals</strong> — one agency = 20-100+ end clients. Worth solving multi-tenancy for.<br><br>
-        <strong>Auto dealer vertical via referral</strong> — Selcuk Kaya (Kayalar Motors) offered to refer social-media-heavy dealers through TIADA/NIADA/HIADA associations. 17K+ independent dealers in TX alone. Podium-dominant but expensive — SleekFlow can win social-first dealers.
+        <strong>Respond.io competitor displacement</strong> — STANBERT LLC (Closed Won) left Respond.io due to zero human support. Validates that superior onboarding + US-based support is a real competitive differentiator. Trucking/logistics = WhatsApp-heavy vertical.<br><br>
+        <strong>US-based businesses with LATAM sales teams</strong> — US and Canadian companies with LATAM go-to-market teams need WhatsApp + CRM integration. Salesforce integration is a key differentiator in vendor evaluations. Repeatable pattern across any US-based company selling into Latin America.<br><br>
+        <strong>Legal / WhatsApp banning pain (US territories & Caribbean)</strong> — DMVV Law (DR) getting constantly banned on WhatsApp Business due to high volume. WhatsApp Business API via SleekFlow directly solves this. Meta ads → WhatsApp funnel, document collection via chat. Repeatable across legal firms in US territories, Caribbean, and Canada where WhatsApp is the default client channel.<br><br>
+        <strong>US Hispanic market = WhatsApp-first</strong> — Clean Credit Consulting (Orlando) and DMVV Law both confirm: Hispanic-serving US businesses use WhatsApp as their primary customer channel. Radio ads → WhatsApp, Meta ads → WhatsApp. Credit repair, legal, tax — any Hispanic-market vertical in FL, TX, CA is a natural prospect.
       </p>
     </div>
   </div>
@@ -244,43 +241,44 @@
 const ALL_DEALS = [
   {
     id: 'ptr', name: "People's Tax Relief", company: "National Tax Resolution Firm, FL",
-    industry: "Financial Services", opp: "pending", isoDate: "2026-02-20",
+    industry: "Financial Services", opp: "maybe", isoDate: "2026-02-20",
     useCase: "High-vol outbound SMS + AI qualification + rep handoff",
-    workflow: "$25K/week radio ads → captures phone numbers → uploads CSV daily (hundreds–thousands/day, 50K+ leads since April) → AI agent 'Kathy' sends outbound SMS → 3-day follow-up cycle → interested leads handed to live rep for booking. 12 sales reps. Currently on Nurture AI ($5-6K/mo).",
-    gaps: "No voice capability (on roadmap). Toll-free only (no 10DLC). No CallerReady CRM integration. SMS platform volume/compliance questions unanswered.",
-    sales: "51-min deep demo. Dax loved rep-picks-up-conversation feature — 'game changer.' Currently closing 20 deals/mo at $150 CAC. Offered aggressive early-adopter discount. Partner Geoff needs sign-off.",
-    market: "Highest-value opportunity. Enterprise plan ($1,400+/mo). Validates SMS as THE primary US channel. Flagship US customer potential.",
-    blocker: "Pending product answers from Gin (volume, throughput, Twilio isolation, opt-in compliance)",
-    blockerThemes: ["SMS Platform Readiness", "CRM / Integration Gaps", "No Voice Capability", "No Local 10DLC Numbers"],
+    workflow: "Heavy radio ad spend → captures phone numbers → uploads CSV daily (hundreds–thousands/day, 50K+ leads since April) → AI agent 'Kathy' sends outbound SMS → 3-day follow-up cycle → interested leads handed to live rep for booking. 12 sales reps. Currently on Nurture AI.",
+    gaps: "No voice capability (on roadmap). Toll-free only (no 10DLC). No CallerReady CRM integration. SMS platform questions resolved — answers are yes on the surface.",
+    sales: "51-min deep demo. Dax loved rep-picks-up-conversation feature — 'game changer.' Offered aggressive early-adopter discount. Partner Geoff needs sign-off.",
+    market: "Validates SMS as THE primary US channel. Flagship US customer potential.",
+    blocker: "Need to schedule POC to test SMS capabilities. Also need confirmation that he's okay losing voice channel — SleekFlow has no voice (on roadmap).",
+    blockerThemes: ["POC Scheduling", "No Voice Capability", "No Local 10DLC Numbers"],
     useCases: ["Outbound SMS Broadcast", "AI Chat / FAQ Bot", "Lead Qualification", "Human Agent Handoff"],
-    signal: "Strongest deal in the pipeline (Enterprise tier, $25K/wk ad spend). Blocked pending product answers. High-volume SMS + AI qualification is a repeatable pattern.",
+    signal: "Maybe — two open items: (1) POC to test SMS capabilities, (2) confirmation he's okay losing voice channel. High-volume SMS + AI qualification is a repeatable pattern.",
     highlight: true
   },
   {
     id: 'perfai', name: "PerfAI", company: "California B2B SaaS",
-    industry: "B2B SaaS", opp: "yes", isoDate: "2026-02-24",
+    industry: "B2B SaaS", opp: "maybe", isoDate: "2026-02-24",
     useCase: "WhatsApp broadcast to UAE/KSA conference leads",
     workflow: "Attend conferences → collect WhatsApp numbers → import → broadcast → follow-up reminder → human agent picks up replies → share calendar link. ~1-2K messages/month.",
     gaps: "US-to-UAE/KSA WhatsApp broadcast rules unclear. Meta Business verification needed.",
-    sales: "Intesar Mohammed (founder) is decision-maker. Warm lead — just needs compliance answers. CSM onboarding offered.",
-    market: "Clean repeatable use case: B2B companies at international conferences. Validates core WhatsApp broadcast. $399/mo Premium AI.",
-    blocker: "US→UAE broadcast compliance",
-    blockerThemes: [],
+    sales: "CEO scheduled the call, asked a few questions but didn't care to see the demo. Interested but wrong personnel on the call — need to get the right people on for a proper evaluation.",
+    market: "Clean repeatable use case: B2B companies at international conferences. Validates core WhatsApp broadcast.",
+    blocker: "Wrong personnel on the call. CEO wasn't the right audience for a demo — need to get the operational/marketing team on a follow-up call.",
+    blockerThemes: ["Wrong Stakeholder on Call"],
     useCases: ["WhatsApp Broadcast", "Omnichannel Inbox", "Human Agent Handoff"],
-    signal: "100% conversion. US companies doing international sales via WhatsApp. Clean, repeatable use case."
+    signal: "Maybe — interested but need to get the right people on the call. CEO didn't engage with the demo. Repeatable use case if we can reach the right stakeholders."
   },
   {
     id: 'evoke', name: "EvokeDM", company: "Solution Integration / Consulting",
-    industry: "Healthcare", opp: "maybe", isoDate: "2026-02-17",
+    industry: "Healthcare", opp: "yes", isoDate: "2026-02-17",
+    partner: true,
     useCase: "Unified WhatsApp inbox + AI bot for dental client",
     workflow: "Partner implementing for dental client with 4+ WhatsApp numbers. Unified inbox, after-hours AI bot, FAQ automation, appointment booking. 6 users. Long-term: resell across healthcare + credit unions.",
     gaps: "Multi-tenancy for partners. Dental CRM integration (ANG2). No formal partner program.",
-    sales: "39-min demo. Follow-up: client doesn't have budget. Offered discount for early traction. Waiting on EvokeDM.",
-    market: "Strong partner/reseller signal. Dental = WhatsApp-heavy, appointment-driven. One partner = multiple clients. ~$440/mo.",
-    blocker: "Client budget + multi-tenancy gap",
-    blockerThemes: ["Multi-tenancy / Agency Support", "CRM / Integration Gaps", "Budget / Pricing"],
+    sales: "39-min demo. Multiple clients. Currently testing a use case and should be signing up for PartnerStack soon. Long-term reseller across healthcare + credit unions.",
+    market: "Strong partner/reseller signal. Dental = WhatsApp-heavy, appointment-driven. One partner = multiple clients.",
+    blocker: "Currently testing use case with dental client. Should be signing up for PartnerStack soon.",
+    blockerThemes: ["PartnerStack Signup Pending"],
     useCases: ["Omnichannel Inbox", "AI Chat / FAQ Bot", "Appointment Booking", "Lead Qualification"],
-    signal: "Partner/reseller model for dental. WhatsApp-heavy, appointment-driven, FAQ-friendly. Budget is the only blocker, not product fit."
+    signal: "Yes — potential partner. Multiple clients, testing use case, PartnerStack signup pending."
   },
   {
     id: 'drg', name: "Diversified Recovery Group", company: "Debt Recovery LLC",
@@ -302,7 +300,7 @@ const ALL_DEALS = [
     workflow: "Agency managing ~20 HVAC/plumbing clients (→100+). Automate FB/IG chat for Meta ad leads. Proactive outbound DMs. Using GoHighLevel + Twilio.",
     gaps: "Multi-tenancy doesn't exist. Meta policy blocks core use case. No GoHighLevel integration.",
     sales: "23-min demo. Austin Fietkau tech-savvy. Meta policy is the hard blocker.",
-    market: "High multiplier (1 agency = 100+ clients). Home services underserved. $399/mo.",
+    market: "High multiplier (1 agency = 100+ clients). Home services underserved.",
     blocker: "Meta policy (outbound DM not allowed)",
     blockerThemes: ["Multi-tenancy / Agency Support", "Meta Policy Restrictions", "CRM / Integration Gaps"],
     useCases: ["Omnichannel Inbox", "AI Chat / FAQ Bot", "Lead Qualification", "Multi-Client Mgmt"],
@@ -327,7 +325,7 @@ const ALL_DEALS = [
     useCase: "General omnichannel interest",
     workflow: "Newsletters + social posts. No inbound lead flow. 1-2 users.",
     gaps: "No pain point. No inbound flow. Unknown CRM.",
-    sales: "18-min call. Pricing ($199+/mo) beyond budget. Not a fit.",
+    sales: "18-min call. Pricing beyond budget. Not a fit.",
     market: "Micro-business coaching. No volume, no budget. Not a target segment.",
     blocker: "Budget + no defined need",
     blockerThemes: ["Budget / Pricing", "No Defined Use Case / Too Early"],
@@ -349,16 +347,120 @@ const ALL_DEALS = [
   },
   {
     id: 'kayalar', name: "Kayalar Motors", company: "Independent Auto Dealer, Houston TX",
-    industry: "Automotive", opp: "maybe", isoDate: "2026-03-02",
+    industry: "Automotive", opp: "no", isoDate: "2026-03-02",
     useCase: "Omnichannel lead management replacing Podium",
-    workflow: "Leads from CarGurus, CarFax, Cars.com, AutoTrader arrive via email → routed to Podium → auto-response → sales team follows up via text/call. Wants centralized inbox covering email + SMS + social. Currently paying Podium $400/mo. 3-4 sales staff.",
+    workflow: "Leads from CarGurus, CarFax, Cars.com, AutoTrader arrive via email → routed to Podium → auto-response → sales team follows up via text/call. Wants centralized inbox covering email + SMS + social. Currently on Podium. 3-4 sales staff.",
     gaps: "No email channel — dealbreaker since 90% of leads arrive via email from auto listing sites. No local 10DLC numbers (toll-free only — bad for local dealer). No auto dealer CRM integrations (DealerSocket, VinSolutions). No CarGurus/CarFax lead routing.",
-    sales: "26-min discovery. Selcuk Kaya (owner) well-connected in TIADA, NIADA, HIADA dealer associations. Not a fit for Kayalar directly (email dependency + no local 10DLC), but offered to refer smaller dealers doing social-media-heavy selling (FB Marketplace). Pricing discussed at $300-400/mo — competitive with Podium.",
-    market: "Auto dealership vertical is massive (17K+ independent dealers in TX via TIADA). Podium dominant but expensive ($300-500/mo). Dealers hate Podium pricing. SleekFlow could win social-media-focused dealers not reliant on email leads. Selcuk = potential channel partner for TIADA/NIADA/HIADA referrals.",
-    blocker: "No email channel (90% of leads come via email). No local 10DLC numbers (toll-free only). No auto dealer CRM integrations.",
-    blockerThemes: ["No Email Channel", "No Local 10DLC Numbers", "CRM / Integration Gaps"],
+    sales: "26-min discovery. Selcuk Kaya (owner) well-connected in TIADA, NIADA, HIADA dealer associations. Not a fit for Kayalar directly (no email channel + no local 10DLC). May refer social-media-heavy dealers who do a lot online through TIADA/NIADA/HIADA associations — those guys need high text volume, 10DLC local numbers, and CRM integrations.",
+    market: "Auto dealership vertical is massive (17K+ independent dealers in TX via TIADA). Podium dominant but expensive. SleekFlow could win social-media-focused dealers not reliant on email leads. Selcuk = potential channel partner for TIADA/NIADA/HIADA referrals.",
+    blocker: "No email channel and no local 10DLC numbers. Not a fit for his dealership.",
+    blockerThemes: ["No Email Channel", "No Local 10DLC Numbers"],
     useCases: ["Omnichannel Inbox", "Lead Qualification", "Human Agent Handoff"],
-    signal: "Not for Kayalar directly but Maybe via referral channel. Selcuk offered to refer social-media-heavy smaller dealers through TIADA/NIADA/HIADA. Auto dealer vertical worth exploring for social-first dealers."
+    signal: "No — not a fit for Kayalar directly due to no email channel and no 10DLC local numbers. May refer social-media-heavy dealers through TIADA/NIADA/HIADA associations."
+  },
+  {
+    id: 'stanbert', name: "STANBERT LLC", company: "Trucking/Logistics, US-based",
+    industry: "Trucking / Logistics", opp: "won", isoDate: "2026-03-03",
+    useCase: "Omnichannel driver communication replacing Respond.io",
+    workflow: "WhatsApp groups for driver coordination (broker channel, finance dept, updates). Support team responds to drivers via WhatsApp. Wants unified inbox: WhatsApp + SMS + Facebook + Instagram. AI bot for after-hours driver Q&A from knowledge base. Workflow automation for lead qualification. Broadcast messaging for driver updates. 4 users total.",
+    gaps: "No email channel (not critical here). SMS only supports toll-free numbers — no local 10DLC. Cannot confirm same toll-free number works for both WhatsApp + SMS registration. Voice/phone call AI triage on roadmap but not available yet.",
+    sales: "37-min discovery + full live demo. Stanley very engaged — said 'I love this' during workflow demo. Currently on Respond.io, leaving due to zero human support. Already WhatsApp Business API user — familiar with flows and AI. Ran live WhatsApp lead qualification demo (buttons, list inputs, AI routing). Closed Won.",
+    market: "Trucking/logistics vertical is WhatsApp-first — drivers and support communicate heavily via WhatsApp groups. Respond.io competitor displacement — poor support driving churn. US trucking has 500K+ active carriers — WhatsApp adoption growing fast among international driver base.",
+    blocker: "None — Closed Won.",
+    blockerThemes: [],
+    useCases: ["Omnichannel Inbox", "AI Agent / Chatbot", "Workflow Automation", "Broadcast Messaging"],
+    signal: "Closed Won. Respond.io displacement complete. First US trucking/logistics win."
+  },
+  {
+    id: 'maintainx', name: "MaintainX", company: "CMMS SaaS, Montreal Canada",
+    industry: "SaaS / Technology", opp: "yes", isoDate: "2026-03-04",
+    useCase: "WhatsApp for LATAM sales team with Salesforce integration",
+    workflow: "LATAM sales team (SDRs, BDRs, AEs, AMs) uses WhatsApp to engage prospects across Latin America, Central America, and Mexico. Inbound lead qualification via AI/chatbot on WhatsApp → create/update leads in Salesforce → reassign conversation to AE with Salesforce owner sync. Outbound re-engagement of cold leads via WhatsApp templates. Different talk tracks for manufacturing vs hospitality verticals. 10-12 users initially. Currently using Meta WhatsApp Business directly but it's 'messy and doesn't work half the time.'",
+    gaps: "Conversation history doesn't sync natively to Salesforce — requires Zapier link or custom API work. No native Outreach integration (Zapier workaround). Deeper Salesforce conversation sync needs dev resources via open API.",
+    sales: "30-min technical deep-dive. Carlos Rosero (LATAM sales lead) and Gabrielle Jacques (director-level) attended with Rami (SleekFlow). Pedro (CSM) joined for technical support. Ran live Salesforce demo — Carlos scanned QR, went through lead creation flow. Gabrielle confirmed Salesforce connection was their main concern — seemed satisfied. Evaluating 2-3 vendors this week. Gabrielle to align with LATAM director on shortlist. Action items: (1) send recording, (2) API docs, (3) Zapier docs, (4) Meta WhatsApp template rates for LATAM countries.",
+    market: "US-based SaaS company with LATAM sales team. Salesforce integration required. LATAM team is WhatsApp-first, perfect fit for SleekFlow core strength. Multi-vertical (manufacturing + hospitality) = reusable workflow templates. Salesforce native integration is a real differentiator in their evaluation.",
+    blocker: "Champion is out on vacation the entire month of March. Reached out to multiple others about scheduling a next call but no one is responding. Stalled — process-heavy org.",
+    blockerThemes: ["Champion Unavailable", "No Response", "Salesforce Conversation Sync"],
+    useCases: ["Omnichannel Inbox", "AI Agent / Chatbot", "Lead Qualification", "Human Agent Handoff", "Salesforce Integration"],
+    signal: "Yes — real opportunity but stalled. Champion on vacation all of March, no responses from other contacts. Re-engage in April."
+  },
+  {
+    id: 'dmvvlaw', name: "DMVV Law", company: "Legal Firm, Dominican Republic/LATAM",
+    industry: "Legal", opp: "yes", isoDate: "2026-03-05",
+    useCase: "WhatsApp client communication for legal case intake",
+    workflow: "Meta ads (Instagram/Facebook) redirect prospects to WhatsApp. Clients send legal documents (ID cards, death certificates) via WhatsApp for case validation. ~300 active contacts/month, ~10K messages/month. Currently on WhatsApp Business (not API) and constantly getting banned due to high volume. Want workflow automation to gather client info before human handoff. Follow-up broadcasts for clients who haven't sent required documents. 5 users, all Spanish-speaking staff.",
+    gaps: "None significant — SleekFlow covers their needs well. CAPI (Meta Conversions API) for ad optimization was mentioned but not deeply explored.",
+    sales: "30-min discovery + demo. Nicole Saint Hilaire (translator/admin) and Helma (principal, Spanish-speaking). Ran live WhatsApp demo — showed workflow automation, labels, internal notes, conversation routing, collaboration. Helma very engaged. Key pain: constantly getting banned by WhatsApp due to message volume. Offered discount for first 2 months during onboarding. Monthly payments preferred. Action items: (1) send quote to Nicole with 2-month discount, (2) schedule onboarding with Spanish-speaking CSM.",
+    market: "Perfect WhatsApp-first use case. LATAM legal firm using WhatsApp as sole client channel. Getting banned on regular WhatsApp Business — API upgrade directly solves this. 300 MACs well within 1,000 tier. Meta ads → WhatsApp funnel is SleekFlow's sweet spot. Spanish-speaking support available. LATAM legal vertical could be repeatable — retirement/pension recovery firms likely have similar patterns across DR, Colombia, Mexico.",
+    blocker: "Evaluating options — not in a rush but have active pain (WhatsApp banning). Need quote sent today. No Spanish-speaking CSM is a potential blocker — client is Spanish-speaking (Dominican Republic). Need to resolve CS support language coverage.",
+    blockerThemes: ["Vendor Evaluation / Competition", "No Spanish-Speaking CSM"],
+    useCases: ["Omnichannel Inbox", "Workflow Automation", "Broadcast Messaging", "Human Agent Handoff", "Document Collection"],
+    signal: "Yes — strong. Active pain point (getting banned) that SleekFlow directly solves. No product gaps. Price is within range. Just needs quote delivered and onboarding scheduled. Fastest path to close after STANBERT."
+  },
+  {
+    id: 'cleancredit', name: "Clean Credit Consulting", company: "Credit Repair, Orlando FL",
+    industry: "Financial Services", opp: "maybe", isoDate: "2026-03-06",
+    useCase: "WhatsApp broadcast nurture for radio ad leads (Hispanic market)",
+    workflow: "Radio ads drive inbound phone calls → team collects contact info → wants to send weekly WhatsApp messages (tips, news, community content) to nurture leads into clients. Hispanic customer base uses WhatsApp as primary channel. Also want utility templates for current client case updates (credit repair status). Verbal opt-in today, willing to change process. Want to expand to SMS later. Currently on WhatsApp Business (not API).",
+    gaps: "US WhatsApp marketing broadcast restrictions are the main unknown. Meta restricts marketing templates for US numbers — need to verify if tips/news/community content gets approved. Verbal opt-in may not be sufficient.",
+    sales: "14-min introductory call. Tony on the road, no demo. Jeremy was transparent about US marketing template restrictions — didn't oversell. Tony appreciated the honesty. Next steps: (1) Tony gets 2 templates from marketing team (tips/news), (2) signs up for SleekFlow free trial, (3) demo + template submission scheduled March 9 at 5pm ET. Jeremy to research US broadcast rules and flag red flags before Monday. Tony also interested in utility templates for client case updates even if marketing broadcast is restricted.",
+    market: "Hispanic credit consulting market is WhatsApp-heavy — mirrors LATAM patterns but US-based. Radio → WhatsApp nurture funnel is interesting. If US marketing templates get approved for tips/news, this is repeatable for any Hispanic-market US business. Credit repair industry is large in FL, TX, CA. Utility templates for case updates are a clear fit regardless.",
+    blocker: "US WhatsApp marketing broadcast rules need verification. Template submissions need Meta approval. Demo scheduled March 9 at 5pm ET.",
+    blockerThemes: ["US WhatsApp Marketing Rules", "Template Approval Uncertainty"],
+    useCases: ["WhatsApp Broadcast", "Lead Nurture", "Utility Templates"],
+    signal: "Maybe — depends on US marketing template approval. Utility templates for case updates are a lock. Marketing broadcast for lead nurture is the question mark. Demo on March 9 will clarify."
+  },
+  {
+    id: 'smilesinc', name: "SmilesInc", company: "Dental Office, Bermuda",
+    industry: "Healthcare", opp: "won", isoDate: "2026-03-09",
+    useCase: "WhatsApp patient communication & workflow automation for dental practice",
+    workflow: "One of the largest dental offices in Bermuda. Want WhatsApp for patient communication — appointment booking, insurance verification routing, AI chatbot for intake questions. Broadcast campaigns for patient recalls, promotions, and engagement. Use Dentrix dental software — need API integration for patient records. Omnichannel (WhatsApp + Facebook + Instagram). ~100+ patients/day, 2 initial users. IT company 'Nurses' manages their systems.",
+    gaps: "Need to verify Dentrix API availability for integration. IT company involvement needed for API setup. No major SleekFlow product gaps for their core use case — standard WhatsApp automation, AI chatbot, and broadcast all supported.",
+    sales: "31-min discovery call with Geormeeka Philpott (Assistant/Operations Manager). Strong interest — Bermuda is WhatsApp-heavy market. Offered discount for first 2 months during onboarding. Geormeeka meeting with practice owners Wednesday March 11 to present. Follow-up call Thursday March 13 at 3pm Bermuda time (1pm CT). Need to send short demo video before Wednesday. Need intro to IT company 'Nurses' for Dentrix API technical discussion.",
+    market: "Bermuda mirrors LATAM WhatsApp adoption patterns — WhatsApp is the default communication channel. Dental/healthcare vertical is strong fit for workflow automation (appointment reminders, insurance routing, patient intake). Large practice with high daily volume = clear ROI. Caribbean/island markets may be an underserved segment similar to LATAM dynamics. Dentrix is widely used in dental industry — if API integration works, this is repeatable across dental practices.",
+    blocker: "None — Closed Won.",
+    blockerThemes: [],
+    useCases: ["WhatsApp Automation", "AI Chatbot", "Patient Broadcast", "Dental Software Integration"],
+    signal: "Closed Won. Bermuda dental practice, WhatsApp-heavy market. Second closed deal."
+  },
+  {
+    id: 'grizzly', name: "Grizzly Training Academy", company: "MMA Gym, Rural Oklahoma",
+    industry: "Other", opp: "yes", isoDate: "2026-03-10",
+    useCase: "Lead response automation across FB DM, IG, Web Chat, SMS",
+    workflow: "MMA gym getting back to leads slowly across multiple channels. Wants faster response times. Channels: Facebook DM, Instagram, Web Chat, and SMS.",
+    gaps: "None identified yet — no demo completed.",
+    sales: "Missed a few scheduled demos but connected via phone call. Surface level interest. Going to record a demo video and send over to move things forward.",
+    market: "Small local business, rural market. Multi-channel lead response is a fit for omnichannel inbox.",
+    blocker: "Has missed multiple demos. Recording a demo video to send over.",
+    blockerThemes: ["Missed Demos", "Demo Video Pending"],
+    useCases: ["Omnichannel Inbox", "Lead Response Automation", "SMS"],
+    signal: "Yes — real opportunity with potential blockers. Has missed multiple demos. Demo video being recorded to move forward."
+  },
+  {
+    id: 'chimco', name: "Chimco.com", company: "Fireplace Parts E-Commerce, Florida",
+    industry: "E-Commerce", opp: "yes", isoDate: "2026-03-10",
+    useCase: "WhatsApp customer communication for online fireplace parts store",
+    workflow: "Sells fireplace parts online in Florida. Uses WhatsApp to connect with customers. Currently on WooCommerce — would need to migrate to Shopify first for SleekFlow integration.",
+    gaps: "Requires Shopify — prospect is currently on WooCommerce. Migration is a prerequisite for integration.",
+    sales: "Missed a demo but connected via phone. Sent details on what our Shopify integration can do — prospect is reviewing.",
+    market: "E-commerce business in Florida using WhatsApp for customer communication. Shopify integration is a natural fit if they migrate.",
+    blocker: "Currently on WooCommerce, not Shopify. Reviewing Shopify integration capabilities. Migration is a prerequisite.",
+    blockerThemes: ["WooCommerce Migration Required"],
+    useCases: ["WhatsApp Customer Communication", "E-Commerce Integration"],
+    signal: "Yes — real opportunity with potential blocker. Needs WooCommerce to Shopify migration before integration. Reviewing Shopify capabilities."
+  },
+  {
+    id: 'latidocare', name: "Latido Care", company: "Medical Tourism, San Diego / Tijuana",
+    industry: "Healthcare", opp: "yes", isoDate: "2026-03-20",
+    useCase: "WhatsApp + SMS patient coordination for cross-border medical tourism",
+    workflow: "Help Americans, Canadians, and international patients access healthcare in Mexico (Tijuana). Landing page with WhatsApp, SMS, and call options. Two patient coordinators need shared inbox. Flow automation for patient triage — procedure type, insurance vs cash pay, documentation collection. AI chatbot for off-hours later. One partner practice, very early stage.",
+    gaps: "No HIPAA compliance (has SOC 2 Type 2 and GDPR). No local 10DLC numbers yet (toll-free available, local on roadmap H2 2026). US WhatsApp marketing templates banned by Meta.",
+    sales: "29-min discovery + demo with Till Hartwig-Arce (founder, latidocare.com). German expat in San Diego, family business. Ran live WhatsApp flow demo — Till engaged, liked the triage flow and pricing. Offered 90% discount for 6 months on Pro AI, renews at standard rate. Comparing against a competitor (Schedule). Follow-up next week. Action items: (1) email demo QR codes + fake site link, (2) send US SMS/WhatsApp rates.",
+    market: "Medical tourism is a strong WhatsApp use case. California Latino population already uses WhatsApp as primary channel. Patient triage flow mirrors dental vertical patterns. San Diego/Tijuana corridor is a major medical tourism hub — cross-border healthcare is niche but growing.",
+    blocker: "Evaluating competitors (mentioned Schedule). Budget-conscious startup. Touching base next week.",
+    blockerThemes: ["Vendor Evaluation / Competition", "Budget Conscious"],
+    useCases: ["Omnichannel Inbox", "WhatsApp Automation", "Flow Builder", "SMS", "AI Chatbot"],
+    signal: "Yes — strong fit. WhatsApp-native founder, Latino patient base in California, medical tourism triage is a natural flow use case. Budget-conscious but receptive to discount. Comparing against Schedule."
   }
 ];
 
@@ -386,8 +488,9 @@ function getWeekBounds(date) {
 
 function setFilter(mode) {
   currentFilter = mode;
-  // Today: March 2, 2026 — use local date to avoid UTC shift
-  const now = localDate(2026, 3, 2);
+  // Use actual current date so filters always work correctly
+  const today = new Date();
+  const now = localDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
   let start, end;
 
   switch(mode) {
@@ -396,7 +499,7 @@ function setFilter(mode) {
       end = new Date(2030, 11, 31, 23, 59, 59);
       break;
     case 'ytd':
-      start = new Date(2026, 0, 1, 0, 0, 0);
+      start = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
       end = new Date(now); end.setHours(23,59,59,999);
       break;
     case 'month':
@@ -468,6 +571,7 @@ function renderAll() {
 // ─── KPIs ───
 function renderKPIs() {
   const total = filteredDeals.length;
+  const won = filteredDeals.filter(d => d.opp === 'won').length;
   const yes = filteredDeals.filter(d => d.opp === 'yes').length;
   const maybe = filteredDeals.filter(d => d.opp === 'maybe').length;
   const no = filteredDeals.filter(d => d.opp === 'no').length;
@@ -475,6 +579,7 @@ function renderKPIs() {
 
   document.getElementById('kpiRow').innerHTML = `
     <div class="kpi" onclick="togglePanel('all',this)"><div class="value">${total}</div><div class="label">Total Calls</div><div class="hint">Click to view all</div></div>
+    ${won > 0 ? `<div class="kpi green" onclick="togglePanel('won',this)" style="border-color:#2ea043;"><div class="value" style="color:#2ea043;">${won}</div><div class="label">Closed Won</div><div class="hint">Click to expand</div></div>` : ''}
     <div class="kpi green" onclick="togglePanel('yes',this)"><div class="value">${yes}</div><div class="label">Real Opportunity</div><div class="hint">Click to expand</div></div>
     <div class="kpi yellow" onclick="togglePanel('maybe',this)"><div class="value">${maybe + pending}</div><div class="label">Maybe</div><div class="hint">Click to expand</div></div>
     <div class="kpi red" onclick="togglePanel('no',this)"><div class="value">${no}</div><div class="label">Not a Fit</div><div class="hint">Click to expand</div></div>
@@ -495,24 +600,25 @@ function togglePanel(filter, el) {
 
   const filtered = filteredDeals.filter(d => {
     if (filter === 'all') return true;
+    if (filter === 'won') return d.opp === 'won';
     if (filter === 'yes') return d.opp === 'yes';
     if (filter === 'maybe') return d.opp === 'maybe' || d.opp === 'pending';
     if (filter === 'no') return d.opp === 'no';
     if (filter === 'pending') return d.opp === 'pending';
   });
 
-  const titles = { all: `All Calls (${filtered.length})`, yes: `Real Opportunities (${filtered.length})`, maybe: `Maybe / Pending (${filtered.length})`, no: `Not a Fit (${filtered.length})`, pending: `Pending Product (${filtered.length})` };
+  const titles = { all: `All Calls (${filtered.length})`, won: `Closed Won (${filtered.length})`, yes: `Real Opportunities (${filtered.length})`, maybe: `Maybe / Pending (${filtered.length})`, no: `Not a Fit (${filtered.length})`, pending: `Pending Product (${filtered.length})` };
   title.textContent = titles[filter];
 
   if (filtered.length === 0) {
     cards.innerHTML = '<div class="empty-state"><div class="empty-icon">∅</div>No calls match this filter in the selected time period.</div>';
   } else {
     cards.innerHTML = filtered.map(d => {
-      const tagClass = d.opp==='yes'?'tag-yes':d.opp==='maybe'?'tag-maybe':d.opp==='no'?'tag-no':'tag-pending';
-      const tagLabel = d.opp==='pending'?'Pending Product':d.opp.charAt(0).toUpperCase()+d.opp.slice(1);
+      const tagClass = d.opp==='won'?'tag-won':d.opp==='yes'?'tag-yes':d.opp==='maybe'?'tag-maybe':d.opp==='no'?'tag-no':'tag-pending';
+      const tagLabel = d.opp==='won'?'Closed Won':d.opp==='pending'?'Pending Product':d.opp.charAt(0).toUpperCase()+d.opp.slice(1);
       const dateStr = ((p=d.isoDate.split('-').map(Number))&&new Date(p[0],p[1]-1,p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
       return `<div class="deal-card">
-        <div class="dc-header"><div><div class="dc-name">${d.name}</div><div class="dc-industry">${d.industry}</div></div><div style="text-align:right;"><span class="tag ${tagClass}">${tagLabel}</span><div class="dc-date">${dateStr}</div></div></div>
+        <div class="dc-header"><div><div class="dc-name">${d.name}${d.partner?' <span class="tag tag-partner">Partner</span>':''}</div><div class="dc-industry">${d.industry}</div></div><div style="text-align:right;"><span class="tag ${tagClass}">${tagLabel}</span><div class="dc-date">${dateStr}</div></div></div>
         <hr class="dc-divider">
         <div class="dc-section"><div class="dc-section-label">Desired Workflow</div><div class="dc-section-text">${d.workflow}</div></div>
         <div class="dc-section"><div class="dc-section-label">Gaps</div><div class="dc-section-text">${d.gaps}</div></div>
@@ -545,9 +651,10 @@ function renderIndustryMatrix() {
   // Group by industry
   const indMap = {};
   filteredDeals.forEach(d => {
-    if (!indMap[d.industry]) indMap[d.industry] = { calls: 0, yes: 0, maybe: 0, no: 0, pending: 0, signals: [] };
+    if (!indMap[d.industry]) indMap[d.industry] = { calls: 0, won: 0, yes: 0, maybe: 0, no: 0, pending: 0, signals: [] };
     indMap[d.industry].calls++;
-    if (d.opp === 'yes') indMap[d.industry].yes++;
+    if (d.opp === 'won') indMap[d.industry].won++;
+    else if (d.opp === 'yes') indMap[d.industry].yes++;
     else if (d.opp === 'maybe') indMap[d.industry].maybe++;
     else if (d.opp === 'pending') indMap[d.industry].pending++;
     else indMap[d.industry].no++;
@@ -556,8 +663,8 @@ function renderIndustryMatrix() {
 
   // Sort: industries with yes/maybe/pending first
   const sorted = Object.entries(indMap).sort((a,b) => {
-    const scoreA = a[1].yes*3 + a[1].pending*2 + a[1].maybe*2;
-    const scoreB = b[1].yes*3 + b[1].pending*2 + b[1].maybe*2;
+    const scoreA = a[1].won*4 + a[1].yes*3 + a[1].pending*2 + a[1].maybe*2;
+    const scoreB = b[1].won*4 + b[1].yes*3 + b[1].pending*2 + b[1].maybe*2;
     return scoreB - scoreA;
   });
 
@@ -565,12 +672,13 @@ function renderIndustryMatrix() {
     const total = data.calls;
     const tags = [];
     const bars = [];
+    if (data.won > 0) { tags.push(`<span class="tag tag-won">Won ×${data.won}</span>`); bars.push(`<span class="ind-bar" style="width:${data.won/total*100}%; background:#2ea043;"></span>`); }
     if (data.yes > 0) { tags.push(`<span class="tag tag-yes">Yes ×${data.yes}</span>`); bars.push(`<span class="ind-bar" style="width:${data.yes/total*100}%; background:#3fb950;"></span>`); }
     if (data.pending > 0) { tags.push(`<span class="tag tag-pending">Pending ×${data.pending}</span>`); bars.push(`<span class="ind-bar" style="width:${data.pending/total*100}%; background:#f0883e;"></span>`); }
     if (data.maybe > 0) { tags.push(`<span class="tag tag-maybe">Maybe ×${data.maybe}</span>`); bars.push(`<span class="ind-bar" style="width:${data.maybe/total*100}%; background:#d29922;"></span>`); }
     if (data.no > 0) { tags.push(`<span class="tag tag-no">No ×${data.no}</span>`); bars.push(`<span class="ind-bar" style="width:${data.no/total*100}%; background:#f85149;"></span>`); }
 
-    const hasPositive = data.yes > 0 || data.maybe > 0 || data.pending > 0;
+    const hasPositive = data.won > 0 || data.yes > 0 || data.maybe > 0 || data.pending > 0;
     const nameColor = hasPositive ? '#3fb950' : (data.no === total ? '#8b949e' : '#d29922');
 
     const sigHtml = data.signals.map(s => `<strong>${s.name}</strong>: ${s.signal}`).join('<br>');
@@ -584,7 +692,7 @@ function renderIndustryMatrix() {
   }).join('');
 
   // Takeaway
-  const yesInds = sorted.filter(([_,d]) => d.yes > 0 || d.pending > 0).map(([n]) => n);
+  const yesInds = sorted.filter(([_,d]) => d.won > 0 || d.yes > 0 || d.pending > 0).map(([n]) => n);
   const maybeInds = sorted.filter(([_,d]) => d.maybe > 0).map(([n]) => n);
 
   card.innerHTML = `
@@ -609,6 +717,7 @@ function renderCharts() {
 
   // Industry x Opp
   const indLabels = [...new Set(filteredDeals.map(d => d.industry))];
+  const wonData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && d.opp==='won').length);
   const yesData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && d.opp==='yes').length);
   const maybeData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && (d.opp==='maybe'||d.opp==='pending')).length);
   const noData = indLabels.map(ind => filteredDeals.filter(d => d.industry===ind && d.opp==='no').length);
@@ -618,6 +727,7 @@ function renderCharts() {
     data: {
       labels: indLabels,
       datasets: [
+        { label: 'Won', data: wonData, backgroundColor: '#2ea043', borderRadius: 4, barThickness: 24 },
         { label: 'Yes', data: yesData, backgroundColor: '#3fb950', borderRadius: 4, barThickness: 24 },
         { label: 'Maybe / Pending', data: maybeData, backgroundColor: '#d29922', borderRadius: 4, barThickness: 24 },
         { label: 'No', data: noData, backgroundColor: '#f85149', borderRadius: 4, barThickness: 24 }
@@ -679,18 +789,18 @@ function renderDealTable() {
   if (filteredDeals.length === 0) { card.innerHTML = '<div class="empty-state"><div class="empty-icon">∅</div>No calls in this period.</div>'; return; }
 
   // Sort: pending first, then yes, maybe, no
-  const oppOrder = { pending: 0, yes: 1, maybe: 2, no: 3 };
+  const oppOrder = { won: 0, pending: 1, yes: 2, maybe: 3, no: 4 };
   const sorted = [...filteredDeals].sort((a,b) => oppOrder[a.opp] - oppOrder[b.opp]);
 
   let rows = sorted.map(d => {
-    const tagClass = d.opp==='yes'?'tag-yes':d.opp==='maybe'?'tag-maybe':d.opp==='no'?'tag-no':'tag-pending';
-    const tagLabel = d.opp==='pending'?'Pending Product':d.opp.charAt(0).toUpperCase()+d.opp.slice(1);
+    const tagClass = d.opp==='won'?'tag-won':d.opp==='yes'?'tag-yes':d.opp==='maybe'?'tag-maybe':d.opp==='no'?'tag-no':'tag-pending';
+    const tagLabel = d.opp==='won'?'Closed Won':d.opp==='pending'?'Pending Product':d.opp.charAt(0).toUpperCase()+d.opp.slice(1);
     const hl = d.highlight ? ' highlight' : '';
     const dateStr = ((p=d.isoDate.split('-').map(Number))&&new Date(p[0],p[1]-1,p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const blockerTags = d.blockerThemes.slice(0,2).map(t => `<span class="tag tag-blocker">${t}</span>`).join(' ');
 
     return `<tr class="${hl}" onclick="toggleTableRow('${d.id}')">
-      <td><span class="expand-icon" id="icon-${d.id}">▶</span><strong>${d.name}</strong><div style="font-size:11px;color:#484f58;margin-top:2px;">${dateStr}</div></td>
+      <td><span class="expand-icon" id="icon-${d.id}">▶</span><strong>${d.name}</strong>${d.partner?' <span class="tag tag-partner" style="font-size:10px;padding:1px 6px;">Partner</span>':''}<div style="font-size:11px;color:#484f58;margin-top:2px;">${dateStr}</div></td>
       <td>${d.industry}</td>
       <td><span class="tag ${tagClass}">${tagLabel}</span></td>
       <td>${d.useCase}</td>
